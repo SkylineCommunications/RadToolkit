@@ -21,7 +21,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         public RadHelper(IConnection connection, Logger logger)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection), "Connection cannot be null.");
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger), "Logger cannot be null.");
             _dataMinerVersion = RetrieveActiveDmsVersion();
             if (_dataMinerVersion != string.Empty)
             {
@@ -81,11 +81,13 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         public void AddParameterGroup(RadGroupSettings settings)
         {
             if (settings == null)
-                throw new ArgumentNullException(nameof(settings), "Settings cannot be null.");
-            if (settings.Subgroups?.Count() > 0)
-                throw new ArgumentException(nameof(settings.Subgroups), "Settings must contain at least one subgroup.");
+                throw new ArgumentNullException("Settings cannot be null.", nameof(settings));
+            if (settings.Subgroups == null)
+                throw new ArgumentNullException("Settings must contain subgroups.", nameof(settings.Subgroups));
+            if (settings.Subgroups.Count == 0)
+                throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings.Subgroups));
 
-            if (settings.Subgroups.Count() >= 2)
+            if (settings.Subgroups.Count >= 2)
             {
                 if (!_allowSharedModelGroups)
                     throw new NotSupportedException("Adding parameter groups with multiple subgroups is not supported on this DataMiner version.");
