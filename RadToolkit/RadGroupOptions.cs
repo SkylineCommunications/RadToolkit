@@ -1,7 +1,16 @@
 ﻿namespace Skyline.DataMiner.Utils.RadToolkit
 {
+    /// <summary>
+    /// Provides options for configuring anomaly detection groups, including model update behavior.
+    /// </summary>
     public class RadGroupOptions : RadGroupBaseOptions
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadGroupOptions"/> class.
+        /// </summary>
+        /// <param name="updateModel">Indicates whether to update the model on new data.</param>
+        /// <param name="anomalyThreshold">Threshold above which an anomaly will be generated. If <c>null</c>, the default threshold is used.</param>
+        /// <param name="minimalDuration">Minimal duration (in minutes) the anomaly score should be above the threshold before a suggestion event is generated. If <c>null</c>, the default duration is used.</param>
         public RadGroupOptions(bool updateModel, double? anomalyThreshold = null, int? minimalDuration = null)
             : base(anomalyThreshold, minimalDuration)
         {

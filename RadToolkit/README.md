@@ -2,7 +2,7 @@
 
 ## About
 
-Toolkit to help you with sending message to DataMiner's [Relational Anomaly Detection](https://aka.dataminer.services/RAD).
+Toolkit to help you with sending message to DataMiner's [Relational Anomaly Detection (RAD)](https://aka.dataminer.services/RAD).
 
 ### About DataMiner
 
@@ -20,5 +20,34 @@ A unique catalog of 7000+ connectors already exists. In addition, you can levera
 At Skyline Communications, we deal in world-class solutions that are deployed by leading companies around the globe. Check out [our proven track record](https://aka.dataminer.services/about-skyline) and see how we make our customers' lives easier by empowering them to take their operations to the next level.
 
 <!-- Uncomment below and add more info to provide more information about how to use this package. -->
-<!-- ## Getting Started -->
-TODO
+## Getting Started
+
+For use in a DataMiner automation script, you can use the following code snippet to create a RadHelper object:
+```csharp
+using Skyline.DataMiner.Automation;
+using Skyline.DataMiner.Utils.RadToolkit;
+
+var radHelper = new RadHelper(Engine.SLNetRaw, new Logger(s => engine.Log(s, LogType.Error, 0)));
+```
+
+For use in a GQI Ad-Hoc Data Source, you can use the following code snippet to create a RadHelper object:
+```csharp
+using Skyline.DataMiner.Analytics.GenericInterface;
+using Skyline.DataMiner.GQI;
+
+[GQIMetaData(Name = "Get Your Data")]
+public class YourDataSource : IGQIDataSource, IGQIOnInit
+{
+	private RadHelper _radHelper;
+
+
+	public OnInitOutputArgs OnInit(OnInitInputArgs input)
+	{
+		_radHelper = new RadHelper(args.DMS.GetConnection(), new Logger(s => args.Logger.Error(s)));
+		
+		return default;
+	}
+}
+```
+
+After creating the RadHelper object, you can then use its methods to fetch, create and update RAD parameter groups.

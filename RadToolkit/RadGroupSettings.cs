@@ -1,19 +1,35 @@
 ﻿using System.Collections.Generic;
-using Skyline.DataMiner.Analytics.DataTypes;
-using Skyline.DataMiner.Net.Database;
 
 namespace Skyline.DataMiner.Utils.RadToolkit
 {
+    /// <summary>
+    /// Represents setting for a RAD group and its subgroups, including whether the group is currently actively monitored. See also <seealso cref="RadGroupSettings"/>.
+    /// </summary>
     public class RadGroupInfo : ARadGroupSettings<RadSubgroupInfo>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadGroupInfo"/> class.
+        /// </summary>
+        /// <param name="groupName">The name of the RAD group.</param>
+        /// <param name="options">The options for the RAD group.</param>
+        /// <param name="subgroups">The list of subgroups in the RAD group.</param>
         public RadGroupInfo(string groupName, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
             : base(groupName, options, subgroups)
         {
         }
     }
 
+    /// <summary>
+    /// Represents the settings for a RAD group and its subgroups. See also <seealso cref="RadGroupInfo"/> if information about the current state of the group should be included.
+    /// </summary>
     public class RadGroupSettings : ARadGroupSettings<RadSubgroupSettings>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadGroupSettings"/> class.
+        /// </summary>
+        /// <param name="groupName">The name of the RAD group.</param>
+        /// <param name="options">The options for the RAD group.</param>
+        /// <param name="subgroups">The list of subgroups in the RAD group.</param>
         public RadGroupSettings(string groupName, RadGroupOptions options, List<RadSubgroupSettings> subgroups)
             : base(groupName, options, subgroups)
         {
@@ -21,10 +37,17 @@ namespace Skyline.DataMiner.Utils.RadToolkit
     }
 
     /// <summary>
-    /// Represents the settings for a (non-shared model) RAD group.
+    /// An abstract base class for RAD group settings. This is the base class for both <see cref="RadGroupSettings"/> and <see cref="RadGroupInfo"/>.
     /// </summary>
-    public abstract class ARadGroupSettings<T> where T: RadSubgroupSettings
+    /// <typeparam name="T">The type of the subgroup settings.</typeparam>
+    public abstract class ARadGroupSettings<T> where T : RadSubgroupSettings
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ARadGroupSettings{T}"/> class.
+        /// </summary>
+        /// <param name="groupName">The name of the RAD group.</param>
+        /// <param name="options">The options for the RAD group.</param>
+        /// <param name="subgroups">The list of subgroups in the RAD group.</param>
         protected ARadGroupSettings(string groupName, RadGroupOptions options, List<T> subgroups)
         {
             GroupName = groupName;

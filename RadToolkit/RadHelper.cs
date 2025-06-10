@@ -1,6 +1,5 @@
 ﻿using Skyline.DataMiner.Analytics.Mad;
 using Skyline.DataMiner.Analytics.Rad;
-using Skyline.DataMiner.Automation;
 using Skyline.DataMiner.Net;
 using Skyline.DataMiner.Net.Messages;
 using System;
@@ -10,14 +9,27 @@ using System.Runtime.CompilerServices;
 
 namespace Skyline.DataMiner.Utils.RadToolkit
 {
+    /// <summary>
+    /// A utility class for working with RAD parameter groups in DataMiner.
+    /// </summary>
     public class RadHelper
     {
+        /// <summary>
+        /// The minimum DataMiner version that allows shared model groups.
+        /// </summary>
         public const string AllowSharedModelGroupsVersion = "10.5.6.0-15711"; //TODO: fill in the correct version number
+
         private readonly IConnection _connection;
         private readonly Logger _logger;
         private readonly string _dataMinerVersion;
         private readonly bool _allowSharedModelGroups;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadHelper"/> class.
+        /// </summary>
+        /// <param name="connection">The DataMiner connection to use for message handling.</param>
+        /// <param name="logger">The logger for error reporting.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="connection"/> or <paramref name="logger"/> is <c>null</c>.</exception>
         public RadHelper(IConnection connection, Logger logger)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection), "Connection cannot be null.");
@@ -29,9 +41,17 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether shared model groups are allowed on the connected DataMiner version.
+        /// </summary>
         public bool AllowSharedModelGroups => _allowSharedModelGroups;
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
+        /// <summary>
+        /// Fetches the list of parameter group names for a given DataMiner agent.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <returns>List of parameter group names, or <c>null</c> if not available.</returns>
         public List<string> FetchParameterGroups(int dataMinerID)
         {
             GetMADParameterGroupsMessage request = new GetMADParameterGroupsMessage()
@@ -43,6 +63,12 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             return response?.GroupNames;
         }
 
+        /// <summary>
+        /// Fetches detailed information about a specific parameter group.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <returns>The <see cref="RadGroupInfo"/> for the group, or <c>null</c> if not found.</returns>
         public RadGroupInfo FetchParameterGroupInfo(int dataMinerID, string groupName)
         {
             GetMADParameterGroupInfoMessage request = new GetMADParameterGroupInfoMessage(groupName)
@@ -58,6 +84,14 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 return null;
         }
 
+        /// <summary>
+        /// Fetches anomaly score data for a parameter group within a specified time range.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="startTime">The start time of the range.</param>
+        /// <param name="endTime">The end time of the range.</param>
+        /// <returns>List of timestamp and anomaly score pairs.</returns>
         public List<KeyValuePair<DateTime, double>> FetchAnomalyScoreData(int dataMinerID, string groupName, DateTime startTime, DateTime endTime)
         {
             GetMADDataMessage request = new GetMADDataMessage(groupName, startTime, endTime)
@@ -68,6 +102,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             return response?.Data?.Where(p => p != null).Select(p => new KeyValuePair<DateTime, double>(p.Timestamp.ToUniversalTime(), p.AnomalyScore)).ToList();
         }
 
+        /// <summary>
+        /// Removes a parameter group from the specified DataMiner agent.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group to remove.</param>
         public void RemoveParameterGroup(int dataMinerID, string groupName)
         {
             var request = new RemoveMADParameterGroupMessage(groupName)
@@ -78,6 +117,13 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        /// <summary>
+        /// Adds a new parameter group using the specified settings.
+        /// </summary>
+        /// <param name="settings">The group settings.</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="settings"/> or its subgroups are <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">Thrown if no subgroups are specified.</exception>
+        /// <exception cref="NotSupportedException">Thrown if the group is a shared model group (i.e. it has two or more subgroups) and DataMiner does not yet support shared model groups.</exception>
         public void AddParameterGroup(RadGroupSettings settings)
         {
             if (settings == null)
@@ -100,6 +146,14 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             }
         }
 
+        /// <summary>
+        /// Retrains a parameter group using the specified time ranges and optionally excluded subgroups.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="timeRanges">The time ranges to use for retraining.</param>
+        /// <param name="excludedSubgroupIDs">Optional list of subgroup IDs whose data should be excluded while retraining.</param>
+        /// <exception cref="NotSupportedException">Thrown if excluding subgroups is not supported on the current DataMiner version.</exception>
         public void RetrainParameterGroup(int dataMinerID, string groupName, IEnumerable<TimeRange> timeRanges, IEnumerable<Guid> excludedSubgroupIDs = null)
         {
             if (_allowSharedModelGroups)
@@ -110,6 +164,16 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 InnerRetrainParameterGroup(dataMinerID, groupName, timeRanges);
         }
 
+        /// <summary>
+        /// Fetches anomaly score data for a specific subgroup by name within a parameter group and time range.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="subGroupName">The name of the subgroup.</param>
+        /// <param name="startTime">The start time of the range.</param>
+        /// <param name="endTime">The end time of the range.</param>
+        /// <returns>List of timestamp and anomaly score pairs.</returns>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
         public List<KeyValuePair<DateTime, double>> FetchAnomalyScoreData(int dataMinerID, string groupName, string subGroupName,
             DateTime startTime, DateTime endTime)
         {
@@ -119,6 +183,16 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             return InnerFetchAnomalyScoreData(dataMinerID, groupName, subGroupName, startTime, endTime);
         }
 
+        /// <summary>
+        /// Fetches anomaly score data for a specific subgroup by ID within a parameter group and time range.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="subGroupID">The ID of the subgroup.</param>
+        /// <param name="startTime">The start time of the range.</param>
+        /// <param name="endTime">The end time of the range.</param>
+        /// <returns>List of timestamp and anomaly score pairs.</returns>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
         public List<KeyValuePair<DateTime, double>> FetchAnomalyScoreData(int dataMinerID, string groupName, Guid subGroupID,
             DateTime startTime, DateTime endTime)
         {
@@ -128,6 +202,13 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             return InnerFetchAnomalyScoreData(dataMinerID, groupName, subGroupID, startTime, endTime);
         }
 
+        /// <summary>
+        /// Renames a parameter group.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="oldGroupName">The current name of the group.</param>
+        /// <param name="newGroupName">The new name for the group.</param>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
         public void RenameParameterGroup(int dataMinerID, string oldGroupName, string newGroupName)
         {
             if (!_allowSharedModelGroups)
@@ -136,6 +217,13 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             InnerRenameParameterGroup(dataMinerID, oldGroupName, newGroupName);
         }
 
+        /// <summary>
+        /// Adds a new subgroup to an existing parameter group.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="settings">The subgroup settings.</param>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
         public void AddSubgroup(int dataMinerID, string groupName, RadSubgroupSettings settings)
         {
             if (!_allowSharedModelGroups)
@@ -144,6 +232,13 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             InnerAddSubgroup(dataMinerID, groupName, settings);
         }
 
+        /// <summary>
+        /// Removes a subgroup from a parameter group.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="subgroupID">The ID of the subgroup to remove.</param>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
         public void RemoveSubgroup(int dataMinerID, string groupName, Guid subgroupID)
         {
             if (!_allowSharedModelGroups)
