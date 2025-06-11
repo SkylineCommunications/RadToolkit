@@ -17,7 +17,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>SkylineCommunications</Authors>
     <Company>Skyline Communications</Company>
-    <Description>Toolkit to help you with sending message to DataMiner's Relational Anomaly Detection</Description>
+    <Description>Toolkit to help you with sending messages to DataMiner's Relational Anomaly Detection</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -127,9 +127,9 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         public void AddParameterGroup(RadGroupSettings settings)
         {
             if (settings == null)
-                throw new ArgumentNullException("Settings cannot be null.", nameof(settings));
+                throw new ArgumentNullException(nameof(settings), "Settings cannot be null.");
             if (settings.Subgroups == null)
-                throw new ArgumentNullException("Settings must contain subgroups.", nameof(settings.Subgroups));
+                throw new ArgumentNullException(nameof(settings.Subgroups), "Settings must contain subgroups.");
             if (settings.Subgroups.Count == 0)
                 throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings.Subgroups));
 
@@ -158,7 +158,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         {
             if (_allowSharedModelGroups)
                 InnerRetrainParameterGroup(dataMinerID, groupName, timeRanges, excludedSubgroupIDs);
-            else if (excludedSubgroupIDs?.Count() > 0)
+            else if (excludedSubgroupIDs?.Any() == true)
                 throw new NotSupportedException("Excluding subgroups is not supported on this DataMiner version.");
             else
                 InnerRetrainParameterGroup(dataMinerID, groupName, timeRanges);

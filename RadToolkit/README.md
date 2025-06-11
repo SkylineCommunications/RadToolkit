@@ -2,7 +2,7 @@
 
 ## About
 
-Toolkit to help you with sending message to DataMiner's [Relational Anomaly Detection (RAD)](https://aka.dataminer.services/RAD).
+Toolkit to help you with sending messages to DataMiner's [Relational Anomaly Detection (RAD)](https://aka.dataminer.services/RAD).
 
 ### About DataMiner
 
