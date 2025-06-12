@@ -18,10 +18,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that allows shared model groups.
         /// </summary>
         public const string AllowSharedModelGroupsVersion = "10.5.6.0-15711"; //TODO: fill in the correct version number
+        //TODO: also update the NuGet package reference
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
-        private readonly string _dataMinerVersion;
         private readonly bool _allowSharedModelGroups;
 
         /// <summary>
@@ -34,10 +34,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection), "Connection cannot be null.");
             _logger = logger ?? throw new ArgumentNullException(nameof(logger), "Logger cannot be null.");
-            _dataMinerVersion = RetrieveActiveDmsVersion();
-            if (_dataMinerVersion != string.Empty)
+            var dataMinerVersion = RetrieveActiveDmsVersion();
+            if (dataMinerVersion != string.Empty)
             {
-                _allowSharedModelGroups = IsDmsHigherThanMinimum(_dataMinerVersion, AllowSharedModelGroupsVersion);
+                _allowSharedModelGroups = IsDmsHigherThanMinimum(dataMinerVersion, AllowSharedModelGroupsVersion);
             }
         }
 
@@ -85,24 +85,6 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Fetches anomaly score data for a parameter group within a specified time range.
-        /// </summary>
-        /// <param name="dataMinerID">The DataMiner agent ID.</param>
-        /// <param name="groupName">The name of the parameter group.</param>
-        /// <param name="startTime">The start time of the range.</param>
-        /// <param name="endTime">The end time of the range.</param>
-        /// <returns>List of timestamp and anomaly score pairs.</returns>
-        public List<KeyValuePair<DateTime, double>> FetchAnomalyScoreData(int dataMinerID, string groupName, DateTime startTime, DateTime endTime)
-        {
-            GetMADDataMessage request = new GetMADDataMessage(groupName, startTime, endTime)
-            {
-                DataMinerID = dataMinerID,
-            };
-            var response = _connection.HandleSingleResponseMessage(request) as GetMADDataResponseMessage;
-            return response?.Data?.Where(p => p != null).Select(p => new KeyValuePair<DateTime, double>(p.Timestamp.ToUniversalTime(), p.AnomalyScore)).ToList();
-        }
-
-        /// <summary>
         /// Removes a parameter group from the specified DataMiner agent.
         /// </summary>
         /// <param name="dataMinerID">The DataMiner agent ID.</param>
@@ -129,9 +111,9 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings), "Settings cannot be null.");
             if (settings.Subgroups == null)
-                throw new ArgumentNullException(nameof(settings.Subgroups), "Settings must contain subgroups.");
+                throw new ArgumentNullException(nameof(settings), "Settings must contain subgroups.");
             if (settings.Subgroups.Count == 0)
-                throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings.Subgroups));
+                throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings));
 
             if (settings.Subgroups.Count >= 2)
             {
@@ -163,6 +145,26 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             else
                 InnerRetrainParameterGroup(dataMinerID, groupName, timeRanges);
         }
+
+#pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
+        /// <summary>
+        /// Fetches anomaly score data for a parameter group within a specified time range.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner agent ID.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <param name="startTime">The start time of the range.</param>
+        /// <param name="endTime">The end time of the range.</param>
+        /// <returns>List of timestamp and anomaly score pairs.</returns>
+        public List<KeyValuePair<DateTime, double>> FetchAnomalyScoreData(int dataMinerID, string groupName, DateTime startTime, DateTime endTime)
+        {
+            GetMADDataMessage request = new GetMADDataMessage(groupName, startTime, endTime)
+            {
+                DataMinerID = dataMinerID,
+            };
+            var response = _connection.HandleSingleResponseMessage(request) as GetMADDataResponseMessage;
+            return response?.Data?.Where(p => p != null).Select(p => new KeyValuePair<DateTime, double>(p.Timestamp.ToUniversalTime(), p.AnomalyScore)).ToList();
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
         /// Fetches anomaly score data for a specific subgroup by name within a parameter group and time range.
@@ -382,6 +384,17 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             _connection.HandleSingleResponseMessage(request);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
+        private void InnerRetrainParameterGroup(int dataMinerID, string groupName, IEnumerable<TimeRange> timeRanges)
+        {
+            var request = new RetrainMADModelMessage(groupName, timeRanges.Select(r => new Skyline.DataMiner.Analytics.Mad.TimeRange(r.Start, r.End)).ToList())
+            {
+                DataMinerID = dataMinerID,
+            };
+            _connection.HandleSingleResponseMessage(request);
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+
         /// <summary>
         /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
         /// </summary>
@@ -416,15 +429,6 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                     new RadSubgroupOptions(), true),
             };
             return new RadGroupInfo(response.GroupInfo.Name, options, subgroups);
-        }
-        
-        private void InnerRetrainParameterGroup(int dataMinerID, string groupName, IEnumerable<TimeRange> timeRanges)
-        {
-            var request = new RetrainMADModelMessage(groupName, timeRanges.Select(r => new Skyline.DataMiner.Analytics.Mad.TimeRange(r.Start, r.End)).ToList())
-            {
-                DataMinerID = dataMinerID,
-            };
-            _connection.HandleSingleResponseMessage(request);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
@@ -503,13 +507,13 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         {
             GetAgentBuildInfo msg = new GetAgentBuildInfo();
             var result = _connection.HandleSingleResponseMessage(msg) as BuildInfoResponse;
-            if (result?.Agents?.FirstOrDefault() == null)
+            var agent = result?.Agents?.FirstOrDefault();
+            if (agent == null)
             {
                 _logger.Error("Failed to retrieve DataMiner version information.");
                 return string.Empty;
             }
 
-            var agent = result.Agents.FirstOrDefault();
             return agent.RawVersion + "-" + agent.UpgradeBuildID;
         }
     }
