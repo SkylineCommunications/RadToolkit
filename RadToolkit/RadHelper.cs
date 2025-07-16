@@ -17,8 +17,8 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// The minimum DataMiner version that allows shared model groups.
         /// </summary>
-        public const string AllowSharedModelGroupsVersion = "10.5.6.0-15711"; //TODO: fill in the correct version number
-        //TODO: also update the NuGet package reference
+        public const string AllowSharedModelGroupsVersion = "10.5.9.0-16057";
+        //TODO: also update the NuGet package reference when the SLAnalyticsTypes is released
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
