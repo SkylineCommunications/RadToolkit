@@ -1,4 +1,6 @@
-﻿namespace Skyline.DataMiner.Utils.RadToolkit
+﻿using System;
+
+namespace Skyline.DataMiner.Utils.RadToolkit
 {
     /// <summary>
     /// Provides options for configuring anomaly detection groups, including model update behavior.
@@ -31,7 +33,7 @@
         {
             if (helper == null)
             {
-                throw new System.ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
+                throw new ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
             }
             return AnomalyThreshold ?? helper.DefaultAnomalyThreshold;
         }
@@ -45,7 +47,7 @@
         {
             if (helper == null)
             {
-                throw new System.ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
+                throw new ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
             }
             return MinimalDuration ?? helper.DefaultMinimumAnomalyDuration;
         }
