@@ -25,19 +25,29 @@
         /// <summary>
         /// Gets the anomaly threshold set in the options, or the default value if none was set.
         /// </summary>
+        /// <param name="helper">The RadHelper instance.</param>
         /// <returns>The anomaly threshold.</returns>
-        public double GetAnomalyThresholdOrDefault()
+        public double GetAnomalyThresholdOrDefault(RadHelper helper)
         {
-            return AnomalyThreshold ?? DefaultAnomalyThreshold;
+            if (helper == null)
+            {
+                throw new System.ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
+            }
+            return AnomalyThreshold ?? helper.DefaultAnomalyThreshold;
         }
 
         /// <summary>
         /// Gets the minimal anomaly duration set in the options, or the default value if none was set.
         /// </summary>
+        /// <param name="helper">The RadHelper instance.</param>
         /// <returns>The minimal duration.</returns>
-        public int GetMinimalDurationOrDefault()
+        public int GetMinimalDurationOrDefault(RadHelper helper)
         {
-            return MinimalDuration ?? DefaultMinimalDuration;
+            if (helper == null)
+            {
+                throw new System.ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
+            }
+            return MinimalDuration ?? helper.DefaultMinimumAnomalyDuration;
         }
     }
 }

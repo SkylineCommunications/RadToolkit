@@ -6,16 +6,6 @@
     public class RadGroupBaseOptions
     {
         /// <summary>
-        /// The default threshold above which an anomaly will be generated.
-        /// </summary>
-        public const double DefaultAnomalyThreshold = 3.0;
-
-        /// <summary>
-        /// The default minimal duration (in minutes) the anomaly score should be above the threshold before a suggestion event is generated.
-        /// </summary>
-        public const int DefaultMinimalDuration = 5;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="RadGroupBaseOptions"/> class.
         /// </summary>
         /// <param name="anomalyThreshold">Threshold above which an anomaly will be generated. If <c>null</c>, the default threshold is used.</param>
