@@ -27,7 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Skyline.DataMiner.Files.SLAnalyticsTypes" Version="10.5.6.2-dev" />
+    <PackageReference Include="Skyline.DataMiner.Files.SLAnalyticsTypes" Version="10.5.9-rc" />
     <PackageReference Include="Skyline.DataMiner.Files.SLNetTypes" Version="10.5.4.2" />
     <PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.0.3">
       <PrivateAssets>all</PrivateAssets>
