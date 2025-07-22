@@ -22,7 +22,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// The minimum DataMiner version that has fields for default anomaly threshold and default minimal anomaly duration.
         /// </summary>
-        public const string DefaultGroupOptionsVersion = "10.5.9.0-16087"; //TODO: set correct version
+        public const string DefaultGroupOptionsVersion = "10.5.9.0-16100";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -549,7 +549,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (currentD > minD) return true;
             if (currentD < minD) return false;
 
-            if (currentBuild > minBuild) return true;
+            if (currentBuild >= minBuild) return true;
             if (currentBuild < minBuild) return false;
 
             return true;
