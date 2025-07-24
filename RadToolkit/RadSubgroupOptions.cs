@@ -1,4 +1,6 @@
-﻿namespace Skyline.DataMiner.Utils.RadToolkit
+﻿using System;
+
+namespace Skyline.DataMiner.Utils.RadToolkit
 {
     /// <summary>
     /// Options for RAD subgroups.
@@ -24,22 +26,32 @@
         /// <summary>
         /// Gets the anomaly threshold set in the options, or the parent anomaly threshold if none was set, or the default value if also that one was not set.
         /// </summary>
+        /// <param name="helper">The RadHelper instance.</param>
         /// <param name="parentAnomalyThreshold">The parent anomaly threshold.</param>
         /// <returns>The anomaly threshold.</returns>
-        public double GetAnomalyThresholdOrDefault(double? parentAnomalyThreshold)
+        public double GetAnomalyThresholdOrDefault(RadHelper helper, double? parentAnomalyThreshold)
         {
-            return AnomalyThreshold ?? parentAnomalyThreshold ?? DefaultAnomalyThreshold;
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
+            }
+            return AnomalyThreshold ?? parentAnomalyThreshold ?? helper.DefaultAnomalyThreshold;
         }
 
         /// <summary>
         /// Gets the minimal anomaly duration set in the options, or the parent minimal duration if none was set,
         /// or the default value if also that one was not set.
         /// </summary>
+        /// <param name="helper">The RadHelper instance.</param>
         /// <param name="parentMinimalDuration">The parent minimal anomaly duration.</param>
         /// <returns>The minimal anomaly duration.</returns>
-        public int GetMinimalDurationOrDefault(int? parentMinimalDuration)
+        public int GetMinimalDurationOrDefault(RadHelper helper, int? parentMinimalDuration)
         {
-            return MinimalDuration ?? parentMinimalDuration ?? DefaultMinimalDuration;
+            if (helper == null)
+            {
+                throw new ArgumentNullException(nameof(helper), "RadHelper cannot be null.");
+            }
+            return MinimalDuration ?? parentMinimalDuration ?? helper.DefaultMinimumAnomalyDuration;
         }
     }
 }

@@ -19,10 +19,15 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// </summary>
         public const string AllowSharedModelGroupsVersion = "10.5.9.0-16057";
         //TODO: also update the NuGet package reference when the SLAnalyticsTypes is released
+        /// <summary>
+        /// The minimum DataMiner version that has fields for default anomaly threshold and default minimal anomaly duration.
+        /// </summary>
+        public const string DefaultGroupOptionsVersion = "10.5.9.0-16100";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
         private readonly bool _allowSharedModelGroups;
+        private readonly bool _defaultGroupOptionsAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -38,6 +43,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (dataMinerVersion != string.Empty)
             {
                 _allowSharedModelGroups = IsDmsHigherThanMinimum(dataMinerVersion, AllowSharedModelGroupsVersion);
+                _defaultGroupOptionsAvailable = IsDmsHigherThanMinimum(dataMinerVersion, DefaultGroupOptionsVersion);
             }
         }
 
@@ -45,6 +51,34 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether shared model groups are allowed on the connected DataMiner version.
         /// </summary>
         public bool AllowSharedModelGroups => _allowSharedModelGroups;
+
+        /// <summary>
+        /// Gets the default value for the threshold above which an anomaly will be generated.
+        /// </summary>
+        public double DefaultAnomalyThreshold
+        {
+            get
+            {
+                if (_defaultGroupOptionsAvailable)
+                    return GetDefaultAnomalyThreshold();
+                else
+                    return 3.0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the default value for the minimal duration (in minutes) the anomaly score should be above the threshold before a suggestion event is generated.
+        /// </summary>
+        public int DefaultMinimumAnomalyDuration
+        {
+            get
+            {
+                if (_defaultGroupOptionsAvailable)
+                    return GetMinimumAnomalyDuration();
+                else
+                    return 5;
+            }
+        }
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         /// <summary>
@@ -433,6 +467,24 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
+        /// Only call this when <seealso cref="_defaultGroupOptionsAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private double GetDefaultAnomalyThreshold()
+        {
+            return RADGroupInfo.DefaultAnomalyThreshold;
+        }
+
+        /// <summary>
+        /// Only call this when <seealso cref="_defaultGroupOptionsAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int GetMinimumAnomalyDuration()
+        {
+            return RADGroupInfo.DefaultMinimumAnomalyDuration;
+        }
+
+        /// <summary>
         /// Determines whether the specified DataMiner version is higher than or equal to a given minimum version.
         /// </summary>
         /// <param name="dataminerVersion">
@@ -497,7 +549,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (currentD > minD) return true;
             if (currentD < minD) return false;
 
-            if (currentBuild > minBuild) return true;
+            if (currentBuild >= minBuild) return true;
             if (currentBuild < minBuild) return false;
 
             return true;
