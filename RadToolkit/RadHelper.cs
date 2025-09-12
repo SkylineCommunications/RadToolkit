@@ -18,16 +18,20 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that allows shared model groups.
         /// </summary>
         public const string AllowSharedModelGroupsVersion = "10.5.9.0-16057";
-        //TODO: also update the NuGet package reference when the SLAnalyticsTypes is released
         /// <summary>
         /// The minimum DataMiner version that has fields for default anomaly threshold and default minimal anomaly duration.
         /// </summary>
         public const string DefaultGroupOptionsVersion = "10.5.9.0-16100";
+        /// <summary>
+        /// The minimum DataMiner version that allows sending SLAnalytics messages directly via GQI.
+        /// </summary>
+        public const string GQISendAnalyticsMessagesVersion = "10.5.9.0";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
         private readonly bool _allowSharedModelGroups;
         private readonly bool _defaultGroupOptionsAvailable;
+        private readonly bool _allowGQISendAnalyticsMessages;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -44,8 +48,14 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             {
                 _allowSharedModelGroups = IsDmsHigherThanMinimum(dataMinerVersion, AllowSharedModelGroupsVersion);
                 _defaultGroupOptionsAvailable = IsDmsHigherThanMinimum(dataMinerVersion, DefaultGroupOptionsVersion);
+                _allowGQISendAnalyticsMessages = IsDmsHigherThanMinimum(dataMinerVersion, GQISendAnalyticsMessagesVersion);
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether sending SLAnalytics messages directly via GQI is allowed on the connected DataMiner version.
+        /// </summary>
+        public bool AllowGQISendAnalyticsMessages => _allowGQISendAnalyticsMessages;
 
         /// <summary>
         /// Gets a value indicating whether shared model groups are allowed on the connected DataMiner version.
@@ -79,6 +89,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                     return 5;
             }
         }
+
+        /// <summary>
+        /// Gets the connection used by this instance.
+        /// </summary>
+        public IConnection Connection => _connection;
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         /// <summary>
