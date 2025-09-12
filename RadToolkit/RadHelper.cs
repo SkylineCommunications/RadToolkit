@@ -26,12 +26,17 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that allows sending SLAnalytics messages directly via GQI.
         /// </summary>
         public const string GQISendAnalyticsMessagesVersion = "10.5.9.0";
+        /// <summary>
+        /// The minimum DataMiner version that has a RadGroupInfoEvent cache.
+        /// </summary>
+        public const string RadGroupInfoEventCacheVersion = "10.5.11.0-16296";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
         private readonly bool _allowSharedModelGroups;
         private readonly bool _defaultGroupOptionsAvailable;
         private readonly bool _allowGQISendAnalyticsMessages;
+        private readonly bool _radGroupInfoEventCacheAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -49,6 +54,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 _allowSharedModelGroups = IsDmsHigherThanMinimum(dataMinerVersion, AllowSharedModelGroupsVersion);
                 _defaultGroupOptionsAvailable = IsDmsHigherThanMinimum(dataMinerVersion, DefaultGroupOptionsVersion);
                 _allowGQISendAnalyticsMessages = IsDmsHigherThanMinimum(dataMinerVersion, GQISendAnalyticsMessagesVersion);
+                _radGroupInfoEventCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, RadGroupInfoEventCacheVersion);
             }
         }
 
@@ -61,6 +67,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether shared model groups are allowed on the connected DataMiner version.
         /// </summary>
         public bool AllowSharedModelGroups => _allowSharedModelGroups;
+
+        /// <summary>
+        /// Gets a value indicating whether the RadGroupInfoEvent cache is available on the connected DataMiner version.
+        /// </summary>
+        public bool RadGroupInfoEventCacheAvailable => _radGroupInfoEventCacheAvailable;
 
         /// <summary>
         /// Gets the default value for the threshold above which an anomaly will be generated.
@@ -95,9 +106,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// </summary>
         public IConnection Connection => _connection;
 
+        public List<string> FetchParameterGroups(int dataMinerID) => FetchParameterGroupsInternal(dataMinerID);
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         /// <summary>
-        /// Fetches the list of parameter group names for a given DataMiner agent.
+        /// Fetches the list of parameter group names for a given DataMiner agent. Note that on versions prior to <see cref="RadGroupInfoEventCacheAvailable"/>, this will
+        /// only return groups from the given agent, while on higher versions, it will return groups from all agents.
         /// </summary>
         /// <param name="dataMinerID">The DataMiner agent ID.</param>
         /// <returns>List of parameter group names, or <c>null</c> if not available.</returns>
