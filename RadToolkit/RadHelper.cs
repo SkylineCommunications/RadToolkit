@@ -90,6 +90,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             }
         }
 
+        /// <summary>
+        /// Gets the connection used by this instance.
+        /// </summary>
+        public IConnection Connection => _connection;
+
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         /// <summary>
         /// Fetches the list of parameter group names for a given DataMiner agent.
