@@ -30,6 +30,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that has a RadGroupInfoEvent cache.
         /// </summary>
         public const string RadGroupInfoEventCacheVersion = "10.5.11.0-16296";
+        //TODO: update, since this also depends on the DataMiner ID field added commit
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -107,7 +108,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         public IConnection Connection => _connection;
 
         /// <summary>
-        /// Fetches the list of the names of all relational anomaly groups across all DataMiner agents.
+        /// Fetches the names of all relational anomaly groups across all DataMiner agents.
         /// </summary>
         /// <returns>A list of parameter group names.</returns>
         public List<string> FetchParameterGroups()
@@ -118,17 +119,17 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                     .OfType<GetDataMinerInfoResponseMessage>()
                     .Select(m => m.ID)
                     .Distinct()
-                    .SelectMany(dmaID => InnerFetchParameterGroupsByMessage(dmaID) ?? new List<string>())
+                    .SelectMany(dmaID => InnerFetchParameterGroups(dmaID) ?? new List<string>())
                     .ToList();
             }
             else
             {
-                return InnerFetchParameterGroupsFromCache();
+                return InnerFetchParameterGroups() ?? new List<string>();
             }
         }
 
         /// <summary>
-        /// Fetches all relational anomaly groups across all DataMiner agents.
+        /// Fetches the details of all relational anomaly groups across all DataMiner agents.
         /// </summary>
         /// <returns>A list of parameter group infos.</returns>
         public List<RadGroupInfo> FetchParameterGroupInfos()
@@ -143,7 +144,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 var result = new List<RadGroupInfo>();
                 foreach (var dataMinerID in dataMinerIDs)
                 {
-                    var groupNames = InnerFetchParameterGroupsByMessage(dataMinerID) ?? new List<string>();
+                    var groupNames = InnerFetchParameterGroups(dataMinerID) ?? new List<string>();
                     if (groupNames == null)
                         continue;
 
@@ -182,7 +183,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         [Obsolete("This method is obsolete since DataMiner 10.5.11. Use FetchParameterGroups() instead, which fetches groups from all agents.")]
         public List<string> FetchParameterGroups(int dataMinerID)
         {
-            return InnerFetchParameterGroupsByMessage(dataMinerID);
+            return InnerFetchParameterGroups(dataMinerID);
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
@@ -388,24 +389,21 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_radGroupInfoEventCacheAvailable"/> is true.
+        /// Only use this call when <seealso cref="_radGroupInfoEventCacheAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private List<string> InnerFetchParameterGroupsFromCache()
+        private List<string> InnerFetchParameterGroups()
         {
-            var request = new GetEventsFromCacheMessage(new SubscriptionFilter(typeof(RadGroupInfoEvent)));
-            return _connection.HandleMessage(request)
-                .OfType<RadGroupInfoEvent>()
-                .Where(evt => evt.Info != null)
-                .Select(evt => evt.Info.Name)
-                .ToList();
+            var request = new GetRADParameterGroupsMessage();
+            var response = _connection.HandleSingleResponseMessage(request) as GetRADParameterGroupsResponseMessage;
+            return response?.GroupNames;
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         /// <summary>
         /// Only use this call when <seealso cref="_radGroupInfoEventCacheAvailable"/> is false.
         /// </summary>
-        private List<string> InnerFetchParameterGroupsByMessage(int dataMinerID)
+        private List<string> InnerFetchParameterGroups(int dataMinerID)
         {
             GetMADParameterGroupsMessage request = new GetMADParameterGroupsMessage()
             {
