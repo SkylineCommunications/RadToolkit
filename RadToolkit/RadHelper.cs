@@ -144,7 +144,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 var result = new List<RadGroupInfo>();
                 foreach (var dataMinerID in dataMinerIDs)
                 {
-                    var groupNames = InnerFetchParameterGroups(dataMinerID) ?? new List<string>();
+                    var groupNames = InnerFetchParameterGroups(dataMinerID);
                     if (groupNames == null)
                         continue;
 
