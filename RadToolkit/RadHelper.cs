@@ -175,7 +175,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Fetches the list of parameter group names for a given DataMiner agent. Note that on versions prior to <see cref="RadGroupInfoEventCacheAvailable"/>, this will
+        /// Fetches the list of parameter group names for a given DataMiner agent. Note that on versions prior to <see cref="RadGroupInfoEventCacheVersion"/>, this will
         /// only return groups from the given agent, while on higher versions, it will return groups from all agents.
         /// </summary>
         /// <param name="dataMinerID">The DataMiner agent ID.</param>
