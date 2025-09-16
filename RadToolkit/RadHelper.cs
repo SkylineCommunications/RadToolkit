@@ -375,7 +375,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_radGroupInfoEventCacheAvailable"/> is true.
+        /// Only call this when <see cref="_radGroupInfoEventCacheAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private List<RadGroupInfo> InnerFetchParameterGroupInfosFromCache()
@@ -389,7 +389,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only use this call when <seealso cref="_radGroupInfoEventCacheAvailable"/> is true.
+        /// Only use this call when <see cref="_radGroupInfoEventCacheAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private List<string> InnerFetchParameterGroups()
@@ -401,7 +401,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         /// <summary>
-        /// Only use this call when <seealso cref="_radGroupInfoEventCacheAvailable"/> is false.
+        /// Only use this call when <see cref="_radGroupInfoEventCacheAvailable"/> is false.
         /// </summary>
         private List<string> InnerFetchParameterGroups(int dataMinerID)
         {
@@ -416,7 +416,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// Only call this when <seealso cref="_radGroupInfoEventCacheAvailable"/> is true.
+        /// Only call this when <see cref="_radGroupInfoEventCacheAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private RadGroupInfo InnerFetchParameterGroupInfo(string groupName)
@@ -431,7 +431,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void InnerAddSharedModelGroup(RadGroupSettings settings)
@@ -444,7 +444,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private RadGroupInfo ParseRADGroupInfo(int dataMinerID, RADGroupInfo groupInfo)
@@ -467,7 +467,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private RadGroupInfo ParseParameterGroupInfoResponse(int dataMinerID, DMSMessage response)
@@ -481,7 +481,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private List<KeyValuePair<DateTime, double>> InnerFetchAnomalyScoreData(int dataMinerID, string groupName, string subGroupName,
@@ -496,7 +496,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private List<KeyValuePair<DateTime, double>> InnerFetchAnomalyScoreData(int dataMinerID, string groupName, Guid subGroupID,
@@ -511,7 +511,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void InnerRenameParameterGroup(int dataMinerID, string oldGroupName, string newGroupName)
@@ -524,7 +524,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void InnerAddSubgroup(int dataMinerID, string groupName, RadSubgroupSettings settings)
@@ -537,7 +537,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void InnerRemoveSubgroup(int dataMinerID, string groupName, Guid subgroupID)
@@ -550,7 +550,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void InnerRetrainParameterGroup(int dataMinerID, string groupName, IEnumerable<TimeRange> timeRanges, IEnumerable<Guid> excludedSubgroupIDs)
@@ -577,7 +577,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// Only call this when <seealso cref="_allowSharedModelGroups"/> is true.
+        /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         private RADSubgroupInfo ToRADSubgroupInfo(RadSubgroupSettings settings)
         {
@@ -614,7 +614,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 #pragma warning restore CS0618 // Type or member is obsolete
 
         /// <summary>
-        /// Only call this when <seealso cref="_defaultGroupOptionsAvailable"/> is true.
+        /// Only call this when <see cref="_defaultGroupOptionsAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private double GetDefaultAnomalyThreshold()
@@ -623,7 +623,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Only call this when <seealso cref="_defaultGroupOptionsAvailable"/> is true.
+        /// Only call this when <see cref="_defaultGroupOptionsAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private int GetMinimumAnomalyDuration()
