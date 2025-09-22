@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Skyline.DataMiner.Utils.RadToolkit
 {
@@ -8,14 +9,33 @@ namespace Skyline.DataMiner.Utils.RadToolkit
     public class RadGroupInfo : ARadGroupSettings<RadSubgroupInfo>
     {
         /// <summary>
+        /// Gets or sets the DataMiner ID where the RAD group is configured.
+        /// </summary>
+        public int DataMinerID { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RadGroupInfo"/> class.
         /// </summary>
         /// <param name="groupName">The name of the RAD group.</param>
         /// <param name="options">The options for the RAD group.</param>
         /// <param name="subgroups">The list of subgroups in the RAD group.</param>
+        [Obsolete("This constructor does not set the DataMinerID. Use the other constructor instead.", false)]
         public RadGroupInfo(string groupName, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
             : base(groupName, options, subgroups)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadGroupInfo"/> class.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner ID where the RAD group is configured.</param>
+        /// <param name="groupName">The name of the RAD group.</param>
+        /// <param name="options">The options for the RAD group.</param>
+        /// <param name="subgroups">The list of subgroups in the RAD group.</param>
+        public RadGroupInfo(int dataMinerID, string groupName, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
+            : base(groupName, options, subgroups)
+        {
+            DataMinerID = dataMinerID;
         }
     }
 
