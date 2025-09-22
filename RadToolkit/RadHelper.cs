@@ -29,8 +29,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// The minimum DataMiner version that has a RadGroupInfoEvent cache.
         /// </summary>
-        public const string RadGroupInfoEventCacheVersion = "10.5.11.0-16296";
-        //TODO: update, since this also depends on the DataMiner ID field added commit
+        public const string RadGroupInfoEventCacheVersion = "10.5.11.0-16340";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
