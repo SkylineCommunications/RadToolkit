@@ -33,7 +33,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// The minimum DataMiner version that allows fetching historical anomalies.
         /// </summary>
-        public const string HistoricalAnomaliesVersion = "10.5.11.0"; //TODO: fill in real version when available
+        public const string HistoricalAnomaliesVersion = "10.5.12.0-16429";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
