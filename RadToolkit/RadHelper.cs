@@ -616,8 +616,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
         private void InnerAddParameterGroup(RadGroupSettings settings)
         {
+            var subgroup = settings.Subgroups.FirstOrDefault();
+            var anomalyThreshold = subgroup?.Options?.AnomalyThreshold ?? settings.Options?.AnomalyThreshold;
+            var minimalDuration = subgroup?.Options?.MinimalDuration ?? settings.Options?.MinimalDuration;
             var groupInfo = new MADGroupInfo(settings.GroupName, settings.Subgroups.First().Parameters?.ConvertAll(p => p?.Key), settings.Options.UpdateModel,
-                settings.Options.AnomalyThreshold, settings.Options.MinimalDuration);
+                anomalyThreshold, minimalDuration);
             var request = new AddMADParameterGroupMessage(groupInfo);
             _connection.HandleSingleResponseMessage(request);
         }
