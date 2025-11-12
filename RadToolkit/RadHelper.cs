@@ -250,16 +250,16 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (settings.Subgroups.Count == 0)
                 throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings));
 
-            if (settings.Subgroups.Count >= 2)
+            if (!_allowSharedModelGroups)
             {
-                if (!_allowSharedModelGroups)
+                if (settings.Subgroups.Count >= 2)
                     throw new NotSupportedException("Adding parameter groups with multiple subgroups is not supported on this DataMiner version.");
 
-                InnerAddSharedModelGroup(settings);
+                InnerAddMadParameterGroup(settings);
             }
             else
             {
-                InnerAddParameterGroup(settings);
+                InnerAddRadParameterGroup(settings);
             }
         }
 
@@ -459,11 +459,22 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void InnerAddSharedModelGroup(RadGroupSettings settings)
+        private void InnerAddRadParameterGroup(RadGroupSettings settings)
         {
             var subgroups = settings.Subgroups.Select(s => ToRADSubgroupInfo(s)).ToList();
-            var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
-                settings.Options.MinimalDuration);
+            double? anomalyThreshold;
+            int? minimalDuration;
+            if (subgroups.Count == 1)
+            {
+                anomalyThreshold = settings.Subgroups[0].Options?.AnomalyThreshold ?? settings.Options?.AnomalyThreshold;
+                minimalDuration = settings.Subgroups[0].Options?.MinimalDuration ?? settings.Options?.MinimalDuration;
+            }
+            else
+            {
+                anomalyThreshold = settings.Options?.AnomalyThreshold;
+                minimalDuration = settings.Options?.MinimalDuration;
+            }
+            var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, anomalyThreshold, minimalDuration);
             var request = new AddRADParameterGroupMessage(groupInfo);
             _connection.HandleSingleResponseMessage(request);
         }
@@ -614,7 +625,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
-        private void InnerAddParameterGroup(RadGroupSettings settings)
+        private void InnerAddMadParameterGroup(RadGroupSettings settings)
         {
             var subgroup = settings.Subgroups.First();
             var anomalyThreshold = subgroup.Options?.AnomalyThreshold ?? settings.Options?.AnomalyThreshold;
