@@ -30,7 +30,7 @@
 
         /// <summary>
         /// Name of the Relational Anomaly Detection group that detected the anomaly.
-        ///</summary>
+        /// </summary>
         public string GroupName { get; set; }
 
         /// <summary>
