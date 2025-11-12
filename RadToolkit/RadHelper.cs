@@ -30,6 +30,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that has a RadGroupInfoEvent cache.
         /// </summary>
         public const string RadGroupInfoEventCacheVersion = "10.5.11.0-16340";
+        /// <summary>
+        /// The minimum DataMiner version that allows fetching historical anomalies.
+        /// </summary>
+        public const string HistoricalAnomaliesVersion = "10.5.12.0-16429";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -37,6 +41,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private readonly bool _defaultGroupOptionsAvailable;
         private readonly bool _allowGQISendAnalyticsMessages;
         private readonly bool _radGroupInfoEventCacheAvailable;
+        private readonly bool _historicalAnomaliesAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -55,6 +60,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 _defaultGroupOptionsAvailable = IsDmsHigherThanMinimum(dataMinerVersion, DefaultGroupOptionsVersion);
                 _allowGQISendAnalyticsMessages = IsDmsHigherThanMinimum(dataMinerVersion, GQISendAnalyticsMessagesVersion);
                 _radGroupInfoEventCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, RadGroupInfoEventCacheVersion);
+                _historicalAnomaliesAvailable = IsDmsHigherThanMinimum(dataMinerVersion, HistoricalAnomaliesVersion);
             }
         }
 
@@ -72,6 +78,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether the RadGroupInfoEvent cache is available on the connected DataMiner version.
         /// </summary>
         public bool RadGroupInfoEventCacheAvailable => _radGroupInfoEventCacheAvailable;
+
+        /// <summary>
+        /// Gets a value indicating whether fetching historical anomalies is available on the connected DataMiner version.
+        /// </summary>
+        public bool HistoricalAnomaliesAvailable => _historicalAnomaliesAvailable;
 
         /// <summary>
         /// Gets the default value for the threshold above which an anomaly will be generated.
@@ -374,6 +385,21 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
+        /// Fetches historical anomalies that start within the specified time range.
+        /// </summary>
+        /// <param name="startTime">The start time of the range in which to fetch historical anomalies.</param>
+        /// <param name="endTime">The end time of the range in which to fetch historical anomalies.</param>
+        /// <returns>A list of historical anomalies</returns>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
+        public List<RelationalAnomaly> FetchRelationalAnomalies(DateTime startTime, DateTime endTime)
+        {
+            if (!_historicalAnomaliesAvailable)
+                throw new NotSupportedException("Fetching historical anomalies is not supported on this DataMiner version.");
+
+            return InnerFetchRelationalAnomalies(startTime, endTime);
+        }
+
+        /// <summary>
         /// Only call this when <see cref="_radGroupInfoEventCacheAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -628,6 +654,21 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private int GetMinimumAnomalyDuration()
         {
             return RADGroupInfo.DefaultMinimumAnomalyDuration;
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_historicalAnomaliesAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private List<RelationalAnomaly> InnerFetchRelationalAnomalies(DateTime startTime, DateTime endTime)
+        {
+            var request = new GetAllRelationalAnomaliesMessage(startTime, endTime);
+            var response = _connection.HandleSingleResponseMessage(request) as GetRelationalAnomaliesResponseMessage;
+            if (response?.Anomalies == null)
+                return new List<RelationalAnomaly>();
+
+            return response.Anomalies.Select(a => new RelationalAnomaly(a.AnomalyID, a.ParameterKey, a.StartTime, a.EndTime, a.GroupName, a.SubgroupName,
+                a.SubgroupID, a.AnomalyScore)).ToList();
         }
 
         /// <summary>
