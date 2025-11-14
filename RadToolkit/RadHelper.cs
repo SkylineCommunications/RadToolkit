@@ -487,8 +487,8 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             var request = new AddRADParameterGroupMessage(groupInfo);
             if (trainingConfiguration != null)
             {
-                var trainingTimeRange = trainingConfiguration?.TimeRanges.Select(tr => new Analytics.Rad.TimeRange(tr.Start, tr.End)).ToList();
-                request.TrainingConfiguration = new Analytics.Rad.TrainingConfiguration(trainingTimeRange, null, trainingConfiguration?.ExcludedSubgroups);
+                var trainingTimeRange = trainingConfiguration.TimeRanges.Select(tr => new Analytics.Rad.TimeRange(tr.Start, tr.End)).ToList();
+                request.TrainingConfiguration = new Analytics.Rad.TrainingConfiguration(trainingTimeRange, null, trainingConfiguration.ExcludedSubgroups);
             }
             _connection.HandleSingleResponseMessage(request);
         }
