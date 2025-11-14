@@ -278,7 +278,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             }
             else
             {
-                InnerAddRadParameterGroup(settings, trainingConfiguration);
+                if (_trainingConfigInAddGroupMessageAvailable)
+                    InnerAddRadParameterGroup(settings, trainingConfiguration);
+                else
+                    InnerAddRadParameterGroup(settings);
             }
         }
 
@@ -478,12 +481,25 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
+        private void InnerAddRadParameterGroup(RadGroupSettings settings)
+        {
+            var subgroups = settings.Subgroups.Select(s => ToRADSubgroupInfo(s)).ToList();
+            var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
+                settings.Options.MinimalDuration);
+            var request = new AddRADParameterGroupMessage(groupInfo);
+            _connection.HandleSingleResponseMessage(request);
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_trainingConfigInAddGroupMessageAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private void InnerAddRadParameterGroup(RadGroupSettings settings, TrainingConfiguration trainingConfiguration)
         {
             var subgroups = settings.Subgroups.Select(s => ToRADSubgroupInfo(s)).ToList();
             var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
                 settings.Options.MinimalDuration);
-            
+
             var request = new AddRADParameterGroupMessage(groupInfo);
             if (trainingConfiguration != null)
             {
