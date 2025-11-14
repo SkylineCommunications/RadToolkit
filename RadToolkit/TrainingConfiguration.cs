@@ -8,7 +8,7 @@
     public class TrainingConfiguration
     {
         /// <summary>
-        /// Constructor for TrainingConfiguration.
+        /// Initializes a new instance of the <see cref="TrainingConfiguration"/> class.
         /// </summary>
         /// <param name="timeRanges">The time ranges to be used for training the model.</param>
         /// <param name="excludedSubgroups">The subgroups whose data should be excluded from training.</param>
