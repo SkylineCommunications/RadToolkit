@@ -30,7 +30,7 @@
 
         /// <summary>
         /// Name of the Relational Anomaly Detection group that detected the anomaly.
-        ///</summary>
+        /// </summary>
         public string GroupName { get; set; }
 
         /// <summary>
@@ -57,8 +57,8 @@
         /// <param name="endTime">The end time of the anomaly.</param>
         /// <param name="groupName">The name of the group on which the anomaly was detected.</param>
         /// <param name="subgroupName">The name of the subgroup on which the anomaly was detected (or null if the subgroup has no name).</param>
-        /// <param name="anomalyScore">The anomaly score.</param>
         /// <param name="subgroupID">The unique identifier of the subgroup that detected the anomaly.</param>
+        /// <param name="anomalyScore">The anomaly score.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="parameterKey"/> or <paramref name="groupName"/> is null.</exception>
         public RelationalAnomaly(Guid anomalyID, ParameterKey parameterKey, DateTime startTime, DateTime endTime, string groupName, string subgroupName,
             Guid subgroupID, double anomalyScore)

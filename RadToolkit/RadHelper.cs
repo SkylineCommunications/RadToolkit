@@ -250,16 +250,20 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (settings.Subgroups.Count == 0)
                 throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings));
 
-            if (settings.Subgroups.Count >= 2)
+            if (!_allowSharedModelGroups)
             {
-                if (!_allowSharedModelGroups)
+                if (settings.Subgroups.Count >= 2)
                     throw new NotSupportedException("Adding parameter groups with multiple subgroups is not supported on this DataMiner version.");
+                if (settings.Subgroups.First()?.Options?.AnomalyThreshold != null)
+                    throw new NotSupportedException("Setting subgroup-specific anomaly thresholds is not supported on this DataMiner version.");
+                if (settings.Subgroups.First()?.Options?.MinimalDuration != null)
+                    throw new NotSupportedException("Setting subgroup-specific minimal durations is not supported on this DataMiner version.");
 
-                InnerAddSharedModelGroup(settings);
+                InnerAddMadParameterGroup(settings);
             }
             else
             {
-                InnerAddParameterGroup(settings);
+                InnerAddRadParameterGroup(settings);
             }
         }
 
@@ -459,7 +463,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void InnerAddSharedModelGroup(RadGroupSettings settings)
+        private void InnerAddRadParameterGroup(RadGroupSettings settings)
         {
             var subgroups = settings.Subgroups.Select(s => ToRADSubgroupInfo(s)).ToList();
             var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
@@ -614,7 +618,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete: messages are obsolete since 10.5.5, but replacements were only added in that version
-        private void InnerAddParameterGroup(RadGroupSettings settings)
+        private void InnerAddMadParameterGroup(RadGroupSettings settings)
         {
             var groupInfo = new MADGroupInfo(settings.GroupName, settings.Subgroups.First().Parameters?.ConvertAll(p => p?.Key), settings.Options.UpdateModel,
                 settings.Options.AnomalyThreshold, settings.Options.MinimalDuration);
