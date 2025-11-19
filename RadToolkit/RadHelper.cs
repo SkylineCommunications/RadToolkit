@@ -37,7 +37,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// The minimum DataMiner version that allows training configuration in the AddRADParameterGroupMessage.
         /// </summary>
-        public const string TrainingConfigInAddGroupMessageVersion = "10.6.1.0";//TODO: fill in correct version
+        public const string TrainingConfigInAddGroupMessageVersion = "10.6.0.0-16548";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -504,7 +504,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (trainingConfiguration != null)
             {
                 var trainingTimeRange = trainingConfiguration.TimeRanges.Select(tr => new Analytics.Rad.TimeRange(tr.Start, tr.End)).ToList();
-                request.TrainingConfiguration = new Analytics.Rad.TrainingConfiguration(trainingTimeRange, null, trainingConfiguration.ExcludedSubgroups);
+                request.TrainingConfiguration = new Analytics.Rad.TrainingConfiguration(trainingTimeRange, trainingConfiguration.ExcludedSubgroups);
             }
             _connection.HandleSingleResponseMessage(request);
         }
