@@ -124,6 +124,20 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
+        /// Gets the default value for the number of days of training data used when creating a new parameter group.
+        /// </summary>
+        public int DefaultTrainingDays
+        {
+            get
+            {
+                if (_trainingConfigInAddGroupMessageAvailable)
+                    return GetDefaultTrainingDays();
+                else
+                    return 60;
+            }
+        }
+
+        /// <summary>
         /// Gets the connection used by this instance.
         /// </summary>
         public IConnection Connection => _connection;
@@ -695,6 +709,15 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private int GetMinimumAnomalyDuration()
         {
             return RADGroupInfo.DefaultMinimumAnomalyDuration;
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_defaultGroupOptionsAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int GetDefaultTrainingDays()
+        {
+            return AddRADParameterGroupMessage.DefaultTrainingDays;
         }
 
         /// <summary>
