@@ -41,7 +41,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// The minimum DataMiner version that has a cache for the anomaly scores.
         /// </summary>
-        public const string AnomalyScoreCacheVersion = "10.6.1.0"; //TODO: fill in correct version
+        public const string AnomalyScoreCacheVersion = "10.6.0.0-16557";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
