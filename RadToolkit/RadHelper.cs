@@ -34,6 +34,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that allows fetching historical anomalies.
         /// </summary>
         public const string HistoricalAnomaliesVersion = "10.5.12.0-16429";
+        /// <summary>
+        /// The minimum DataMiner version that allows training configuration in the AddRADParameterGroupMessage.
+        /// </summary>
+        public const string TrainingConfigInAddGroupMessageVersion = "10.6.0.0-16548";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -42,6 +46,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private readonly bool _allowGQISendAnalyticsMessages;
         private readonly bool _radGroupInfoEventCacheAvailable;
         private readonly bool _historicalAnomaliesAvailable;
+        private readonly bool _trainingConfigInAddGroupMessageAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -61,6 +66,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 _allowGQISendAnalyticsMessages = IsDmsHigherThanMinimum(dataMinerVersion, GQISendAnalyticsMessagesVersion);
                 _radGroupInfoEventCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, RadGroupInfoEventCacheVersion);
                 _historicalAnomaliesAvailable = IsDmsHigherThanMinimum(dataMinerVersion, HistoricalAnomaliesVersion);
+                _trainingConfigInAddGroupMessageAvailable = IsDmsHigherThanMinimum(dataMinerVersion, TrainingConfigInAddGroupMessageVersion);
             }
         }
 
@@ -83,6 +89,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether fetching historical anomalies is available on the connected DataMiner version.
         /// </summary>
         public bool HistoricalAnomaliesAvailable => _historicalAnomaliesAvailable;
+
+        /// <summary>
+        /// Gets a value indicating whether training configuration in the AddRADParameterGroupMessage is available on the connected DataMiner version.
+        /// </summary>
+        public bool TrainingConfigInAddGroupMessageAvailable => _trainingConfigInAddGroupMessageAvailable;
 
         /// <summary>
         /// Gets the default value for the threshold above which an anomaly will be generated.
@@ -109,6 +120,20 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                     return GetMinimumAnomalyDuration();
                 else
                     return 5;
+            }
+        }
+
+        /// <summary>
+        /// Gets the default value for the number of days of training data used when creating a new parameter group.
+        /// </summary>
+        public int DefaultTrainingDays
+        {
+            get
+            {
+                if (_trainingConfigInAddGroupMessageAvailable)
+                    return GetDefaultTrainingDays();
+                else
+                    return 60;
             }
         }
 
@@ -238,10 +263,12 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Adds a new parameter group using the specified settings.
         /// </summary>
         /// <param name="settings">The group settings.</param>
+        /// <param name="trainingConfiguration">The training configuration.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="settings"/> or its subgroups are <c>null</c>.</exception>
         /// <exception cref="ArgumentException">Thrown if no subgroups are specified.</exception>
-        /// <exception cref="NotSupportedException">Thrown if the group is a shared model group (i.e. it has two or more subgroups) and DataMiner does not yet support shared model groups.</exception>
-        public void AddParameterGroup(RadGroupSettings settings)
+        /// <exception cref="NotSupportedException">Thrown if the group is a shared model group (i.e. it has two or more subgroups) and DataMiner does not yet support shared model groups, or
+        /// if training configuration is provided and DataMiner does not yet support passing training configuration while adding parameter groups.</exception>
+        public void AddParameterGroup(RadGroupSettings settings, TrainingConfiguration trainingConfiguration = null)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings), "Settings cannot be null.");
@@ -249,6 +276,8 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 throw new ArgumentNullException(nameof(settings), "Settings must contain subgroups.");
             if (settings.Subgroups.Count == 0)
                 throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings));
+            if (trainingConfiguration != null && !_trainingConfigInAddGroupMessageAvailable)
+                throw new NotSupportedException("Passing training configuration while adding parameter groups is not supported on this DataMiner version.");
 
             if (!_allowSharedModelGroups)
             {
@@ -263,7 +292,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             }
             else
             {
-                InnerAddRadParameterGroup(settings);
+                if (_trainingConfigInAddGroupMessageAvailable)
+                    InnerAddRadParameterGroup(settings, trainingConfiguration);
+                else
+                    InnerAddRadParameterGroup(settings);
             }
         }
 
@@ -473,6 +505,25 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
+        /// Only call this when <see cref="_trainingConfigInAddGroupMessageAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void InnerAddRadParameterGroup(RadGroupSettings settings, TrainingConfiguration trainingConfiguration)
+        {
+            var subgroups = settings.Subgroups.Select(s => ToRADSubgroupInfo(s)).ToList();
+            var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
+                settings.Options.MinimalDuration);
+
+            var request = new AddRADParameterGroupMessage(groupInfo);
+            if (trainingConfiguration != null)
+            {
+                var trainingTimeRange = trainingConfiguration.TimeRanges.Select(tr => new Analytics.Rad.TimeRange(tr.Start, tr.End)).ToList();
+                request.TrainingConfiguration = new Analytics.Rad.TrainingConfiguration(trainingTimeRange, trainingConfiguration.ExcludedSubgroups);
+            }
+            _connection.HandleSingleResponseMessage(request);
+        }
+
+        /// <summary>
         /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -658,6 +709,15 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private int GetMinimumAnomalyDuration()
         {
             return RADGroupInfo.DefaultMinimumAnomalyDuration;
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_defaultGroupOptionsAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int GetDefaultTrainingDays()
+        {
+            return AddRADParameterGroupMessage.DefaultTrainingDays;
         }
 
         /// <summary>
