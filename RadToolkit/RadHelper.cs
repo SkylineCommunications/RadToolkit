@@ -42,6 +42,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that has a cache for the anomaly scores.
         /// </summary>
         public const string AnomalyScoreCacheVersion = "10.6.0.0-16557";
+        /// <summary>
+        /// The minimum DataMiner version that has the <see cref="GetRADSubgroupFitScoresMessage"/> message (with an IsOutlier field in the response).
+        /// </summary>
+        public const string FitScoreVersion = "10.6.1.0-16537";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -52,6 +56,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private readonly bool _historicalAnomaliesAvailable;
         private readonly bool _trainingConfigInAddGroupMessageAvailable;
         private readonly bool _anomalyScoreCacheAvailable;
+        private readonly bool _fitScoreAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -73,6 +78,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 _historicalAnomaliesAvailable = IsDmsHigherThanMinimum(dataMinerVersion, HistoricalAnomaliesVersion);
                 _trainingConfigInAddGroupMessageAvailable = IsDmsHigherThanMinimum(dataMinerVersion, TrainingConfigInAddGroupMessageVersion);
                 _anomalyScoreCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, AnomalyScoreCacheVersion);
+                _fitScoreAvailable = IsDmsHigherThanMinimum(dataMinerVersion, FitScoreVersion);
             }
         }
 
@@ -105,6 +111,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether the anomaly score cache is available on the connected DataMiner version.
         /// </summary>
         public bool AnomalyScoreCacheAvailable => _anomalyScoreCacheAvailable;
+        /// <summary>
+        /// Gets a value indicating whether fit score information is available on the connected DataMiner version.
+        /// </summary>
+        public bool FitScoreAvailable => _fitScoreAvailable;
 
         /// <summary>
         /// Gets the default value for the threshold above which an anomaly will be generated.
@@ -419,7 +429,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// Removes a subgroup from a parameter group.
         /// </summary>
-        /// <param name="dataMinerID">The DataMiner agent ID, or -1 to let resolve the DataMiner agent automatically.</param>
+        /// <param name="dataMinerID">The DataMiner agent ID, or -1 to resolve the DataMiner agent automatically.</param>
         /// <param name="groupName">The name of the parameter group.</param>
         /// <param name="subgroupID">The ID of the subgroup to remove.</param>
         /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
@@ -445,6 +455,28 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 
             return InnerFetchRelationalAnomalies(startTime, endTime);
         }
+
+        /// <summary>
+        /// Fetch the fit scores for all subgroups in a parameter group. See also <see cref="GetRADSubgroupFitScoresMessage"/> for more information on the fit scores.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner ID of the group, or -1 to resolve the DataMiner agent automatically.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <returns>A dictionary with the subgroup IDs as keys and the fit scores are values</returns>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version</exception>
+        public Dictionary<Guid, FitScore> FetchFitScores(int dataMinerID, string groupName)
+        {
+            if (!_fitScoreAvailable)
+                throw new NotSupportedException("Fetching fit scores is not supported on this DataMiner version.");
+            
+            return InnerFetchFitScores(dataMinerID, groupName);
+        }
+
+        /// <summary>
+        /// Fetch the fit scores for all subgroups in a parameter group. See also <see cref="GetRADSubgroupFitScoresMessage"/> for more information on the fit scores.
+        /// </summary>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <returns>A dictionary with the subgroup IDs as keys and the fit scores as values</returns>
+        public Dictionary<Guid, FitScore> FetchFitScores(string groupName) => FetchFitScores(-1, groupName);
 
         /// <summary>
         /// Only call this when <see cref="_radGroupInfoEventCacheAvailable"/> is true.
@@ -744,6 +776,21 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 
             return response.Anomalies.Select(a => new RelationalAnomaly(a.AnomalyID, a.ParameterKey, a.StartTime, a.EndTime, a.GroupName, a.SubgroupName,
                 a.SubgroupID, a.AnomalyScore)).ToList();
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_fitScoreAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private Dictionary<Guid, FitScore> InnerFetchFitScores(int dataMinerID, string groupName)
+        {
+            var request = new GetRADSubgroupFitScoresMessage(groupName);
+            if (dataMinerID != -1)
+                request.DataMinerID = dataMinerID;
+            var response = _connection.HandleSingleResponseMessage(request) as GetRADSubgroupFitScoresResponseMessage;
+            if (response?.SubgroupFitScores == null)
+                return new Dictionary<Guid, FitScore>();
+            return response.SubgroupFitScores.ToDictionary(s => s.SubgroupID, s => new FitScore(s.ModelFit, s.IsOutlier));
         }
 
         /// <summary>
