@@ -38,6 +38,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that allows training configuration in the AddRADParameterGroupMessage.
         /// </summary>
         public const string TrainingConfigInAddGroupMessageVersion = "10.6.0.0-16548";
+        /// <summary>
+        /// The minimum DataMiner version that has a cache for the anomaly scores.
+        /// </summary>
+        public const string AnomalyScoreCacheVersion = "10.6.0.0-16557";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -47,6 +51,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private readonly bool _radGroupInfoEventCacheAvailable;
         private readonly bool _historicalAnomaliesAvailable;
         private readonly bool _trainingConfigInAddGroupMessageAvailable;
+        private readonly bool _anomalyScoreCacheAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -67,6 +72,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 _radGroupInfoEventCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, RadGroupInfoEventCacheVersion);
                 _historicalAnomaliesAvailable = IsDmsHigherThanMinimum(dataMinerVersion, HistoricalAnomaliesVersion);
                 _trainingConfigInAddGroupMessageAvailable = IsDmsHigherThanMinimum(dataMinerVersion, TrainingConfigInAddGroupMessageVersion);
+                _anomalyScoreCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, AnomalyScoreCacheVersion);
             }
         }
 
@@ -94,6 +100,11 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether training configuration in the AddRADParameterGroupMessage is available on the connected DataMiner version.
         /// </summary>
         public bool TrainingConfigInAddGroupMessageAvailable => _trainingConfigInAddGroupMessageAvailable;
+
+        /// <summary>
+        /// Gets a value indicating whether the anomaly score cache is available on the connected DataMiner version.
+        /// </summary>
+        public bool AnomalyScoreCacheAvailable => _anomalyScoreCacheAvailable;
 
         /// <summary>
         /// Gets the default value for the threshold above which an anomaly will be generated.
