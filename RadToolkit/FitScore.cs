@@ -3,7 +3,7 @@
     /// <summary>
     /// A fit score for a relational anomaly subgroup.
     /// </summary>
-    public struct FitScore
+    public class FitScore
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FitScore"/> struct.
