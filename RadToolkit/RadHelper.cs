@@ -462,7 +462,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <param name="dataMinerID">The DataMiner ID of the group, or -1 to resolve the DataMiner agent automatically.</param>
         /// <param name="groupName">The name of the parameter group.</param>
         /// <returns>A dictionary with the subgroup IDs as keys and the fit scores as values</returns>
-        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version</exception>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
         public Dictionary<Guid, FitScore> FetchFitScores(int dataMinerID, string groupName)
         {
             if (!_fitScoreAvailable)
