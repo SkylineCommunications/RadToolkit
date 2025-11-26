@@ -4,6 +4,32 @@ using System.Collections.Generic;
 namespace Skyline.DataMiner.Utils.RadToolkit
 {
     /// <summary>
+    /// Represents information about a RAD group, including its unique identifier. See also <seealso cref="RadGroupInfo"/> and <seealso cref="RadGroupSettings"/>.
+    /// </summary>
+    public class RadGroupInfoWithID : RadGroupInfo
+    {
+        /// <summary>
+        /// The unique identifier of the parameter group.
+        /// </summary>
+        public Guid ParameterGroupID { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadGroupInfoWithID"/> class with the specified DataMiner ID,
+        /// group name, parameter group ID, options, and subgroups.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner ID where the RAD group is configured.</param>
+        /// <param name="groupName">The name of the group.</param>
+        /// <param name="parameterGroupID">The unique identifier of the parameter group.</param>
+        /// <param name="options">The options that define the behavior and configuration of the group.</param>
+        /// <param name="subgroups">The list of subgroups associated with this group.</param>
+        public RadGroupInfoWithID(int dataMinerID, string groupName, Guid parameterGroupID, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
+            : base(dataMinerID, groupName, options, subgroups)
+        {
+            ParameterGroupID = parameterGroupID;
+        }
+    }
+
+    /// <summary>
     /// Represents setting for a RAD group and its subgroups, including whether the group is currently actively monitored. See also <seealso cref="RadGroupSettings"/>.
     /// </summary>
     public class RadGroupInfo : ARadGroupSettings<RadSubgroupInfo>

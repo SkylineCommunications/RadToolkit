@@ -185,7 +185,8 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
-        /// Fetches the details of all relational anomaly groups across all DataMiner agents.
+        /// Fetches the details of all relational anomaly groups across all DataMiner agents. On DataMiner versions later than <see cref="RadGroupInfoEventCacheVersion"/>, 
+        /// the returned group infos will also include the parameter group ID.
         /// </summary>
         /// <returns>A list of parameter group infos.</returns>
         public List<RadGroupInfo> FetchParameterGroupInfos()
@@ -488,7 +489,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             return _connection.HandleMessage(request)
                 .OfType<RadGroupInfoEvent>()
                 .Where(evt => evt.Info != null)
-                .Select(evt => ParseRADGroupInfo(evt.DataMinerID, evt.Info))
+                .Select(evt => ParseRADGroupInfo(evt.DataMinerID, evt.Info, evt.ParameterGroupID))
                 .ToList();
         }
 
@@ -570,7 +571,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private RadGroupInfo ParseRADGroupInfo(int dataMinerID, RADGroupInfo groupInfo)
+        private RadGroupInfo ParseRADGroupInfo(int dataMinerID, RADGroupInfo groupInfo, Guid? parameterGroupID = null)
         {
             if (groupInfo == null)
                 return null;
@@ -586,7 +587,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 var subgroupParameters = subgroup.Parameters?.Where(p => p != null).Select(p => new RadParameter(p.Key, p.Label)).ToList() ?? new List<RadParameter>();
                 subgroups.Add(new RadSubgroupInfo(subgroup.Name, subgroup.ID, subgroupParameters, subgroupOptions, subgroup.IsMonitored));
             }
-            return new RadGroupInfo(dataMinerID, groupInfo.Name, options, subgroups);
+            if (parameterGroupID.HasValue)
+                return new RadGroupInfoWithID(dataMinerID, groupInfo.Name, parameterGroupID.Value, options, subgroups);
+            else
+                return new RadGroupInfo(dataMinerID, groupInfo.Name, options, subgroups);
         }
 
         /// <summary>
