@@ -532,7 +532,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             if (response == null)
                 return null;
 
-            return ParseRADGroupInfo(response.DataMinerID, response.ParameterGroupInfo);
+            return ParseRADGroupInfo(response.DataMinerID, response.ParameterGroupInfo, response.ParameterGroupID);
         }
 
         /// <summary>
@@ -571,7 +571,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Only call this when <see cref="_allowSharedModelGroups"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private RadGroupInfo ParseRADGroupInfo(int dataMinerID, RADGroupInfo groupInfo, Guid? parameterGroupID = null)
+        private RadGroupInfo ParseRADGroupInfo(int dataMinerID, RADGroupInfo groupInfo, Guid parameterGroupID)
         {
             if (groupInfo == null)
                 return null;
@@ -587,10 +587,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 var subgroupParameters = subgroup.Parameters?.Where(p => p != null).Select(p => new RadParameter(p.Key, p.Label)).ToList() ?? new List<RadParameter>();
                 subgroups.Add(new RadSubgroupInfo(subgroup.Name, subgroup.ID, subgroupParameters, subgroupOptions, subgroup.IsMonitored));
             }
-            if (parameterGroupID.HasValue)
-                return new RadGroupInfoWithID(dataMinerID, groupInfo.Name, parameterGroupID.Value, options, subgroups);
-            else
-                return new RadGroupInfo(dataMinerID, groupInfo.Name, options, subgroups);
+            return new RadGroupInfo(dataMinerID, groupInfo.Name, parameterGroupID, options, subgroups);
         }
 
         /// <summary>
@@ -600,7 +597,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private RadGroupInfo ParseParameterGroupInfoResponse(int dataMinerID, DMSMessage response)
         {
             if (response is GetRADParameterGroupInfoResponseMessage parameterGroupInfoResponse)
-                return ParseRADGroupInfo(dataMinerID, parameterGroupInfoResponse?.ParameterGroupInfo);
+                return ParseRADGroupInfo(dataMinerID, parameterGroupInfoResponse.ParameterGroupInfo, parameterGroupInfoResponse.ParameterGroupID);
             else if (response is GetMADParameterGroupInfoResponseMessage madParameterGroupInfoResponse)
                 return ParseMADParameterGroupInfoResponse(dataMinerID, madParameterGroupInfoResponse);
             else
@@ -736,7 +733,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                     response.GroupInfo.Parameters?.ConvertAll(p => new RadParameter(p, string.Empty)) ?? new List<RadParameter>(), 
                     new RadSubgroupOptions(), true),
             };
-            return new RadGroupInfo(dataMinerID, response.GroupInfo.Name, options, subgroups);
+            return new RadGroupInfo(dataMinerID, response.GroupInfo.Name, Guid.Empty, options, subgroups);
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
