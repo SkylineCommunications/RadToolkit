@@ -14,12 +14,17 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         public int DataMinerID { get; set; }
 
         /// <summary>
+        /// Gets or sets the unique identifier of the RAD group.
+        /// </summary>
+        public Guid ParameterGroupID { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RadGroupInfo"/> class.
         /// </summary>
         /// <param name="groupName">The name of the RAD group.</param>
         /// <param name="options">The options for the RAD group.</param>
         /// <param name="subgroups">The list of subgroups in the RAD group.</param>
-        [Obsolete("This constructor does not set the DataMinerID. Use the other constructor instead.", false)]
+        [Obsolete("This constructor does not set the DataMinerID or the ParameterGroupID. Use the other constructor instead.", false)]
         public RadGroupInfo(string groupName, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
             : base(groupName, options, subgroups)
         {
@@ -32,10 +37,26 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <param name="groupName">The name of the RAD group.</param>
         /// <param name="options">The options for the RAD group.</param>
         /// <param name="subgroups">The list of subgroups in the RAD group.</param>
+        [Obsolete("This constructor does not set the ParameterGroupID. Use the other constructor instead.", false)]
         public RadGroupInfo(int dataMinerID, string groupName, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
             : base(groupName, options, subgroups)
         {
             DataMinerID = dataMinerID;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RadGroupInfo"/> class.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner ID where the RAD group is configured.</param>
+        /// <param name="groupName">The name of the RAD group.</param>
+        /// <param name="parameterGroupID">The unique identifier of the RAD group.</param>
+        /// <param name="options">The options for the RAD group.</param>
+        /// <param name="subgroups">The list of subgroups in the RAD group.</param>
+        public RadGroupInfo(int dataMinerID, string groupName, Guid parameterGroupID, RadGroupOptions options, List<RadSubgroupInfo> subgroups)
+            : base(groupName, options, subgroups)
+        {
+            DataMinerID = dataMinerID;
+            ParameterGroupID = parameterGroupID;
         }
     }
 
