@@ -6,7 +6,7 @@
     public class FitScore
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FitScore"/> struct.
+        /// Initializes a new instance of the <see cref="FitScore"/> class.
         /// </summary>
         /// <param name="modelFit">The model fit score of the subgroup.</param>
         /// <param name="isOutlier">Whether the subgroup is an outlier.</param>
