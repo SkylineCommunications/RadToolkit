@@ -34,6 +34,18 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// The minimum DataMiner version that allows fetching historical anomalies.
         /// </summary>
         public const string HistoricalAnomaliesVersion = "10.5.12.0-16429";
+        /// <summary>
+        /// The minimum DataMiner version that allows training configuration in the AddRADParameterGroupMessage.
+        /// </summary>
+        public const string TrainingConfigInAddGroupMessageVersion = "10.6.0.0-16548";
+        /// <summary>
+        /// The minimum DataMiner version that has a cache for the anomaly scores.
+        /// </summary>
+        public const string AnomalyScoreCacheVersion = "10.6.0.0-16557";
+        /// <summary>
+        /// The minimum DataMiner version that has the <see cref="GetRADSubgroupFitScoresMessage"/> message (with an IsOutlier field in the response).
+        /// </summary>
+        public const string FitScoreVersion = "10.6.1.0-16537";
 
         private readonly IConnection _connection;
         private readonly Logger _logger;
@@ -42,6 +54,9 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         private readonly bool _allowGQISendAnalyticsMessages;
         private readonly bool _radGroupInfoEventCacheAvailable;
         private readonly bool _historicalAnomaliesAvailable;
+        private readonly bool _trainingConfigInAddGroupMessageAvailable;
+        private readonly bool _anomalyScoreCacheAvailable;
+        private readonly bool _fitScoreAvailable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RadHelper"/> class.
@@ -61,6 +76,9 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 _allowGQISendAnalyticsMessages = IsDmsHigherThanMinimum(dataMinerVersion, GQISendAnalyticsMessagesVersion);
                 _radGroupInfoEventCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, RadGroupInfoEventCacheVersion);
                 _historicalAnomaliesAvailable = IsDmsHigherThanMinimum(dataMinerVersion, HistoricalAnomaliesVersion);
+                _trainingConfigInAddGroupMessageAvailable = IsDmsHigherThanMinimum(dataMinerVersion, TrainingConfigInAddGroupMessageVersion);
+                _anomalyScoreCacheAvailable = IsDmsHigherThanMinimum(dataMinerVersion, AnomalyScoreCacheVersion);
+                _fitScoreAvailable = IsDmsHigherThanMinimum(dataMinerVersion, FitScoreVersion);
             }
         }
 
@@ -83,6 +101,20 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Gets a value indicating whether fetching historical anomalies is available on the connected DataMiner version.
         /// </summary>
         public bool HistoricalAnomaliesAvailable => _historicalAnomaliesAvailable;
+
+        /// <summary>
+        /// Gets a value indicating whether training configuration in the AddRADParameterGroupMessage is available on the connected DataMiner version.
+        /// </summary>
+        public bool TrainingConfigInAddGroupMessageAvailable => _trainingConfigInAddGroupMessageAvailable;
+
+        /// <summary>
+        /// Gets a value indicating whether the anomaly score cache is available on the connected DataMiner version.
+        /// </summary>
+        public bool AnomalyScoreCacheAvailable => _anomalyScoreCacheAvailable;
+        /// <summary>
+        /// Gets a value indicating whether fit score information is available on the connected DataMiner version.
+        /// </summary>
+        public bool FitScoreAvailable => _fitScoreAvailable;
 
         /// <summary>
         /// Gets the default value for the threshold above which an anomaly will be generated.
@@ -109,6 +141,20 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                     return GetMinimumAnomalyDuration();
                 else
                     return 5;
+            }
+        }
+
+        /// <summary>
+        /// Gets the default value for the number of days of training data used when creating a new parameter group.
+        /// </summary>
+        public int DefaultTrainingDays
+        {
+            get
+            {
+                if (_trainingConfigInAddGroupMessageAvailable)
+                    return GetDefaultTrainingDays();
+                else
+                    return 60;
             }
         }
 
@@ -238,10 +284,12 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// Adds a new parameter group using the specified settings.
         /// </summary>
         /// <param name="settings">The group settings.</param>
+        /// <param name="trainingConfiguration">The training configuration.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="settings"/> or its subgroups are <c>null</c>.</exception>
         /// <exception cref="ArgumentException">Thrown if no subgroups are specified.</exception>
-        /// <exception cref="NotSupportedException">Thrown if the group is a shared model group (i.e. it has two or more subgroups) and DataMiner does not yet support shared model groups.</exception>
-        public void AddParameterGroup(RadGroupSettings settings)
+        /// <exception cref="NotSupportedException">Thrown if the group is a shared model group (i.e. it has two or more subgroups) and DataMiner does not yet support shared model groups, or
+        /// if training configuration is provided and DataMiner does not yet support passing training configuration while adding parameter groups.</exception>
+        public void AddParameterGroup(RadGroupSettings settings, TrainingConfiguration trainingConfiguration = null)
         {
             if (settings == null)
                 throw new ArgumentNullException(nameof(settings), "Settings cannot be null.");
@@ -249,6 +297,8 @@ namespace Skyline.DataMiner.Utils.RadToolkit
                 throw new ArgumentNullException(nameof(settings), "Settings must contain subgroups.");
             if (settings.Subgroups.Count == 0)
                 throw new ArgumentException("Settings must contain at least one subgroup.", nameof(settings));
+            if (trainingConfiguration != null && !_trainingConfigInAddGroupMessageAvailable)
+                throw new NotSupportedException("Passing training configuration while adding parameter groups is not supported on this DataMiner version.");
 
             if (!_allowSharedModelGroups)
             {
@@ -263,7 +313,10 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             }
             else
             {
-                InnerAddRadParameterGroup(settings);
+                if (_trainingConfigInAddGroupMessageAvailable)
+                    InnerAddRadParameterGroup(settings, trainingConfiguration);
+                else
+                    InnerAddRadParameterGroup(settings);
             }
         }
 
@@ -376,7 +429,7 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         /// <summary>
         /// Removes a subgroup from a parameter group.
         /// </summary>
-        /// <param name="dataMinerID">The DataMiner agent ID, or -1 to let resolve the DataMiner agent automatically.</param>
+        /// <param name="dataMinerID">The DataMiner agent ID, or -1 to resolve the DataMiner agent automatically.</param>
         /// <param name="groupName">The name of the parameter group.</param>
         /// <param name="subgroupID">The ID of the subgroup to remove.</param>
         /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
@@ -402,6 +455,28 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 
             return InnerFetchRelationalAnomalies(startTime, endTime);
         }
+
+        /// <summary>
+        /// Fetch the fit scores for all subgroups in a parameter group. See also <see cref="GetRADSubgroupFitScoresMessage"/> for more information on the fit scores.
+        /// </summary>
+        /// <param name="dataMinerID">The DataMiner ID of the group, or -1 to resolve the DataMiner agent automatically.</param>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <returns>A dictionary with the subgroup IDs as keys and the fit scores as values</returns>
+        /// <exception cref="NotSupportedException">Thrown if the operation is not supported on the current DataMiner version.</exception>
+        public Dictionary<Guid, FitScore> FetchFitScores(int dataMinerID, string groupName)
+        {
+            if (!_fitScoreAvailable)
+                throw new NotSupportedException("Fetching fit scores is not supported on this DataMiner version.");
+            
+            return InnerFetchFitScores(dataMinerID, groupName);
+        }
+
+        /// <summary>
+        /// Fetch the fit scores for all subgroups in a parameter group. See also <see cref="GetRADSubgroupFitScoresMessage"/> for more information on the fit scores.
+        /// </summary>
+        /// <param name="groupName">The name of the parameter group.</param>
+        /// <returns>A dictionary with the subgroup IDs as keys and the fit scores as values</returns>
+        public Dictionary<Guid, FitScore> FetchFitScores(string groupName) => FetchFitScores(-1, groupName);
 
         /// <summary>
         /// Only call this when <see cref="_radGroupInfoEventCacheAvailable"/> is true.
@@ -469,6 +544,25 @@ namespace Skyline.DataMiner.Utils.RadToolkit
             var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
                 settings.Options.MinimalDuration);
             var request = new AddRADParameterGroupMessage(groupInfo);
+            _connection.HandleSingleResponseMessage(request);
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_trainingConfigInAddGroupMessageAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void InnerAddRadParameterGroup(RadGroupSettings settings, TrainingConfiguration trainingConfiguration)
+        {
+            var subgroups = settings.Subgroups.Select(s => ToRADSubgroupInfo(s)).ToList();
+            var groupInfo = new RADGroupInfo(settings.GroupName, subgroups, settings.Options.UpdateModel, settings.Options.AnomalyThreshold,
+                settings.Options.MinimalDuration);
+
+            var request = new AddRADParameterGroupMessage(groupInfo);
+            if (trainingConfiguration != null)
+            {
+                var trainingTimeRange = trainingConfiguration.TimeRanges.Select(tr => new Analytics.Rad.TimeRange(tr.Start, tr.End)).ToList();
+                request.TrainingConfiguration = new Analytics.Rad.TrainingConfiguration(trainingTimeRange, trainingConfiguration.ExcludedSubgroups);
+            }
             _connection.HandleSingleResponseMessage(request);
         }
 
@@ -661,6 +755,15 @@ namespace Skyline.DataMiner.Utils.RadToolkit
         }
 
         /// <summary>
+        /// Only call this when <see cref="_defaultGroupOptionsAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int GetDefaultTrainingDays()
+        {
+            return AddRADParameterGroupMessage.DefaultTrainingDays;
+        }
+
+        /// <summary>
         /// Only call this when <see cref="_historicalAnomaliesAvailable"/> is true.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -673,6 +776,21 @@ namespace Skyline.DataMiner.Utils.RadToolkit
 
             return response.Anomalies.Select(a => new RelationalAnomaly(a.AnomalyID, a.ParameterKey, a.StartTime, a.EndTime, a.GroupName, a.SubgroupName,
                 a.SubgroupID, a.AnomalyScore)).ToList();
+        }
+
+        /// <summary>
+        /// Only call this when <see cref="_fitScoreAvailable"/> is true.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private Dictionary<Guid, FitScore> InnerFetchFitScores(int dataMinerID, string groupName)
+        {
+            var request = new GetRADSubgroupFitScoresMessage(groupName);
+            if (dataMinerID != -1)
+                request.DataMinerID = dataMinerID;
+            var response = _connection.HandleSingleResponseMessage(request) as GetRADSubgroupFitScoresResponseMessage;
+            if (response?.SubgroupFitScores == null)
+                return new Dictionary<Guid, FitScore>();
+            return response.SubgroupFitScores.ToDictionary(s => s.SubgroupID, s => new FitScore(s.ModelFit, s.IsOutlier));
         }
 
         /// <summary>
